@@ -5,6 +5,7 @@ import os
 import streamlit as st
 
 from novel_forge.ai import GenerationService
+from novel_forge.auth import login_required
 from novel_forge.config import settings
 from novel_forge.db import Database, LockedChapterError
 from novel_forge.intake import expansion_scope, parse_chapter_samples
@@ -21,6 +22,8 @@ h1,h2,h3 { font-family:Georgia,serif; letter-spacing:.01em; }
 .stButton button { border-radius:3px; border-color:var(--brass); }
 </style>
 """, unsafe_allow_html=True)
+
+login_required()
 
 db = Database()
 db.initialize()
@@ -45,6 +48,11 @@ def selected_project():
 
 
 st.sidebar.title("The Novel Forge")
+if os.getenv("NOVEL_FORGE_HOSTED", "").lower() in {"1", "true", "yes"}:
+    st.sidebar.warning("Hosted storage may be temporary. Download backups frequently; local mode remains the safest home for a private manuscript.")
+if st.session_state.get("novel_forge_authenticated") and st.sidebar.button("Sign out"):
+    st.session_state.pop("novel_forge_authenticated", None)
+    st.rerun()
 page = st.sidebar.radio("Studio", ["Projects", "Seed Interview", "Story Bible", "Outline", "Manuscript", "Continuity", "Editorial Desk", "KDP Studio"])
 project = selected_project()
 
