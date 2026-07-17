@@ -1,0 +1,87 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  seed TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS project_settings (
+  project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  genre TEXT DEFAULT '', target_audience TEXT DEFAULT '', pov TEXT DEFAULT '', tense TEXT DEFAULT '',
+  target_book_length INTEGER DEFAULT 80000, target_chapter_length INTEGER DEFAULT 2500,
+  prose_density TEXT DEFAULT 'balanced', dialogue_ratio TEXT DEFAULT 'balanced', description_level TEXT DEFAULT 'balanced',
+  pacing TEXT DEFAULT 'moderate', romance_intensity TEXT DEFAULT 'none', violence_level TEXT DEFAULT 'mild',
+  religious_constraints TEXT DEFAULT '', forbidden_content TEXT DEFAULT '', comparable_styles TEXT DEFAULT '',
+  avoid_habits TEXT DEFAULT '', themes TEXT DEFAULT '', ending_preferences TEXT DEFAULT '', content_boundaries TEXT DEFAULT '',
+  voice_charter TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS story_bible_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  category TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, is_locked INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS characters (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  name TEXT NOT NULL, role TEXT DEFAULT '', description TEXT DEFAULT '', goals TEXT DEFAULT '', contradictions TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS locations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  name TEXT NOT NULL, description TEXT DEFAULT '', constraints TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS timeline_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  event_order INTEGER NOT NULL DEFAULT 0, label TEXT NOT NULL, details TEXT DEFAULT '', story_date TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS chapters (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  chapter_number INTEGER NOT NULL, title TEXT DEFAULT '', outline TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'planned',
+  approved_version_id INTEGER, is_locked INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(project_id, chapter_number)
+);
+CREATE TABLE IF NOT EXISTS chapter_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, chapter_id INTEGER NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  version_number INTEGER NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, summary TEXT DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'author', rewrite_scope TEXT DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(chapter_id, version_number)
+);
+CREATE TABLE IF NOT EXISTS scenes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, chapter_id INTEGER NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  scene_order INTEGER NOT NULL, heading TEXT DEFAULT '', purpose TEXT DEFAULT '', content TEXT DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS continuity_facts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  chapter_id INTEGER REFERENCES chapters(id) ON DELETE SET NULL, fact TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'unresolved',
+  importance TEXT NOT NULL DEFAULT 'normal', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS editorial_findings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  chapter_id INTEGER REFERENCES chapters(id) ON DELETE CASCADE, pass_type TEXT NOT NULL, severity TEXT NOT NULL,
+  finding TEXT NOT NULL, suggestion TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'open'
+);
+CREATE TABLE IF NOT EXISTS style_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  rule_text TEXT NOT NULL, is_active INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS author_decisions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  decision TEXT NOT NULL, rationale TEXT DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS exports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  export_type TEXT NOT NULL, file_path TEXT NOT NULL, preflight_report TEXT DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS book_metadata (
+  project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  book_title TEXT NOT NULL DEFAULT '', author_name TEXT NOT NULL DEFAULT '', dedication TEXT NOT NULL DEFAULT '',
+  front_matter_preferences TEXT NOT NULL DEFAULT '', back_matter_preferences TEXT NOT NULL DEFAULT '',
+  preface_text TEXT NOT NULL DEFAULT '', foreword_text TEXT NOT NULL DEFAULT '', introduction_text TEXT NOT NULL DEFAULT '',
+  acknowledgments_text TEXT NOT NULL DEFAULT '', epilogue_text TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS generation_errors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  operation TEXT NOT NULL, error TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
