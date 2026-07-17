@@ -73,3 +73,21 @@ Tests cover schema creation, append-only chapter versions, locked-content protec
 The working slice includes all requested data tables and UI destinations, but advanced outline generation, separate editorial pass engines, full KDP front matter and running-header controls, PDF rendering, production-grade image/font handling, and the complete KDP Studio export UI remain subsequent milestones. Basic print DOCX, ebook DOCX, EPUB, and preflight foundations live in `novel_forge/exports.py` for that next phase.
 
 Before publication, always recheck current Amazon KDP specifications. Trim, margin, gutter, font, image, TOC, and file-validation requirements can change.
+
+## Deploy with Streamlit Community Cloud
+
+Netlify cannot run this application because it is a long-running Python/Streamlit server, not a static HTML site. To host it from GitHub:
+
+1. Go to [share.streamlit.io](https://share.streamlit.io), sign in, and choose **Create app**.
+2. Select repository `Richardatf/Novel-Forge`, branch `main`, and entry point `app.py`.
+3. Open **Advanced settings** and add these secrets, choosing your own strong values:
+
+   ```toml
+   OPENAI_API_KEY = "your-api-key"
+   NOVEL_FORGE_HOSTED = "true"
+   APP_PASSWORD = "a-long-unique-studio-password"
+   ```
+
+4. Deploy. Hosted mode fails closed if `APP_PASSWORD` is missing. The password is compared securely and is never stored in SQLite or source control.
+
+Streamlit Community Cloud's local filesystem is not durable project storage. A restart or redeploy can remove the SQLite database. Use the application's backup button frequently and download the backup, or keep real manuscripts in the local Windows installation. Do not treat the hosted copy as the only copy of a manuscript.
